@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>质因数分解</title>
+    <title>叶的随机小工具</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,42 +17,61 @@
 </head>
 
 <body>
+
     <h2>质因数分解</h2>
-    <input type="text" id="numberInput" placeholder="输入一个数字">
+    <input type="text" id="factNum" placeholder="输入一个数字" onkeydown="factNumEnter(event)">
     <button onclick="factorize()">分解质因数</button>
-    <div id="result"></div>
-
+    <div id="factNumResult"></div>
     <script>
+        function factNumEnter(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                factorize();
+            }
+        }
         function factorize() {
-            var input = document.getElementById("numberInput").value;
-            var number = parseInt(input);
-
+            let input = document.getElementById("factNum").value;
+            let number = parseInt(input);
             if (isNaN(number)) {
-                document.getElementById("result").innerText = "请输入有效的数字。";
+                document.getElementById("factNumResult").innerText = "请输入有效的数字。";
                 return;
             }
-
             if (number < 2) {
-                document.getElementById("result").innerText = "质因数分解仅适用于大于等于2的整数。";
+                document.getElementById("factNumResult").innerText = "质因数分解仅适用于大于等于2的整数。";
                 return;
             }
-
-            var factors = [];
-
-            for (var i = 2; i <= number; i++) {
+            let factors = [];
+            for (let i = 2; i <= number; i++) {
                 while ((number % i) === 0) {
                     factors.push(i);
                     number /= i;
                 }
             }
-
             if (factors.length === 0) {
                 factors.push(number);
             }
-
-            document.getElementById("result").innerText = "分解质因数结果为: " + factors.join(" × ");
+            document.getElementById("factNumResult").innerText = "分解质因数结果为: " + factors.join(" × ");
         }
     </script>
+
+    <h2>字符排序</h2>
+    <input type="text" id="sortString" placeholder="输入任意字符串" onkeydown="sortStrEnter(event)">
+    <button onclick="sortStr()">排序</button>
+    <div id="sortStrResult"></div>
+    <script>
+        function sortStrEnter(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                sortStr();
+            }
+        }
+        function sortStr() {
+            let input = document.getElementById("sortString").value;
+            input = input.split('').sort((a, b) => a.charCodeAt() - b.charCodeAt()).join('');
+            document.getElementById("sortStrResult").innerText = input.split('').sort((a, b) => a - b).join('');
+        }
+    </script>
+
 </body>
 
 </html>
