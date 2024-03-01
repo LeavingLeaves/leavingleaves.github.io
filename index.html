@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>质因数分解</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #result {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>质因数分解</h2>
+    <input type="text" id="numberInput" placeholder="输入一个数字">
+    <button onclick="factorize()">分解质因数</button>
+    <div id="result"></div>
+
+    <script>
+        function factorize() {
+            var input = document.getElementById("numberInput").value;
+            var number = parseInt(input);
+
+            if (isNaN(number)) {
+                document.getElementById("result").innerText = "请输入有效的数字。";
+                return;
+            }
+
+            if (number < 2) {
+                document.getElementById("result").innerText = "质因数分解仅适用于大于等于2的整数。";
+                return;
+            }
+
+            var factors = [];
+
+            for (var i = 2; i <= number; i++) {
+                while ((number % i) === 0) {
+                    factors.push(i);
+                    number /= i;
+                }
+            }
+
+            if (factors.length === 0) {
+                factors.push(number);
+            }
+
+            document.getElementById("result").innerText = "分解质因数结果为: " + factors.join(" × ");
+        }
+    </script>
+</body>
+
+</html>
