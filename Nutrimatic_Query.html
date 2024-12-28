@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nutrimatic Query生成</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #result {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2><a href="https://nutrimatic.org/" target="_blank">打开Nutrimatic</a></h2>
+
+    <div>匹配串：　<input type="text" id="pattern" placeholder="例如L..F，l__f，L??f"></div>
+    <div>结果长度：<input type="text" id="length" placeholder="例如4，2~4，4 2"></div>
+    <div>子串：　　<input type="text" id="substr" placeholder="使用空格或逗号隔开"></div>
+    <div>连续子串：<input type="text" id="lsubstr" placeholder="使用空格或逗号隔开"></div>
+    <div>母串：　　<input type="text" id="superstr" placeholder="使用空格或逗号隔开"></div>
+    <div>不含字母：<input type="text" id="nletter" placeholder=""></div>
+    <div>后缀开头：<input type="text" id="suffix" placeholder="使用空格或逗号隔开"></div>
+    <div>前缀结尾：<input type="text" id="prefix" placeholder="使用空格或逗号隔开"></div>
+    <div>改单字母：<input type="text" id="change1" placeholder="使用空格或逗号隔开"></div>
+    <div>含双字母：<input type="checkbox" id="double"></div>
+
+    <br><button onclick="generate()">生成</button>
+
+    <div id="result"></div>
+    <br>
+    <a id="redirect" href="https://nutrimatic.org/?q=" target="_blank">https://nutrimatic.org/?q=</a>
+    <script>
+        function generate() {
+            let l = [];
+            if (document.getElementById("pattern").value.length !== 0) {
+                let str = document.getElementById("pattern").value;
+                str = str.toLowerCase();
+                str = str.replaceAll(/[_.?]/g, "A");
+                l.push(str);
+            }
+            if (document.getElementById("length").value.length !== 0) {
+                let str = document.getElementById("length").value;
+                str = str.replaceAll(/[^0-9 ~,-]|(?<!\d)0/g, "");
+                str = str.replaceAll(/[~-]/g, ",");
+                str = str.split(/\s+/).map(s => {
+                    if (!s.includes(",")) { return "A{" + s + "}"; }
+                    let minl = Infinity, maxl = 0;
+                    if (s[0] === ",") { minl = 0; }
+                    if (s[s.length - 1] === ",") { maxl = Infinity; }
+                    s = s.split(",").map(e => parseInt(e)).filter(n => !isNaN(n));
+                    minl = s.reduce((a, b) => Math.min(a, b), minl);
+                    maxl = s.reduce((a, b) => Math.max(a, b), maxl);
+                    return "A{" + minl + "," + (maxl === Infinity ? "" : maxl) + "}"
+                }).join(' ');
+                l.push('"' + str + '"');
+            }
+            if (document.getElementById("substr").value.length !== 0) {
+                let str = document.getElementById("substr").value;
+                str.split(/[ ,，]/).forEach(s => {
+                    s = s.toLowerCase();
+                    s = s.replaceAll(/|/g, "A*");
+                    l.push(s);
+                });
+            }
+            if (document.getElementById("lsubstr").value.length !== 0) {
+                let str = document.getElementById("lsubstr").value;
+                str.split(/[ ,，]/).forEach(s => {
+                    s = s.toLowerCase();
+                    s = "A*" + s + "A*";
+                    l.push(s);
+                });
+            }
+            if (document.getElementById("superstr").value.length !== 0) {
+                let str = document.getElementById("superstr").value;
+                str.split(/[ ,，]/).forEach(s => {
+                    s = s.toLowerCase();
+                    s = s.replaceAll(/(?<!^)/g, "?");
+                    l.push(s);
+                });
+            }
+            if (document.getElementById("nletter").value.length !== 0) {
+                let str = document.getElementById("nletter").value;
+                str = str.toLowerCase();
+                str = str.replaceAll(/[^a-z]/g, "");
+                l.push("[^" + str + "]*");
+            }
+            if (document.getElementById("suffix").value.length !== 0) {
+                let str = document.getElementById("suffix").value;
+                str.split(/[ ,，]/).forEach(s => {
+                    s = s.toLowerCase();
+                    let f = s => s.length === 1 ? s : "(" + f(s.slice(0, s.length - 1)) + ")?" + s[s.length - 1];
+                    l.push(f(s) + "A*");
+                });
+            }
+            if (document.getElementById("prefix").value.length !== 0) {
+                let str = document.getElementById("prefix").value;
+                str.split(/[ ,，]/).forEach(s => {
+                    s = s.toLowerCase();
+                    let f = s => s.length === 1 ? s : s[0] + "(" + f(s.slice(1)) + ")?";
+                    l.push("A*" + f(s));
+                });
+            }
+            if (document.getElementById("change1").value.length !== 0) {
+                let str = document.getElementById("change1").value;
+                str.split(/[ ,，]/).forEach(s => {
+                    s = s.toLowerCase();
+                    let res = [];
+                    for (let i = 0; i < s.length; i++) {
+                        res.push(s.slice(0, i) + "A" + s.slice(i + 1));
+                    }
+                    l.push("(" + res.join("|") + ")");
+                });
+            }
+            if (document.getElementById("double").checked) {
+                l.push("A*(aa|bb|cc|dd|ee|ff|gg|hh|ii|jj|kk|ll|mm|nn|oo|pp|qq|rr|ss|tt|uu|vv|ww|xx|yy|zz)A*");
+            }
+
+            let result = l.join("&");
+
+            document.getElementById("result").innerText = result;
+            let redirect = "https://nutrimatic.org/?q=" + encodeURIComponent(result);
+            let link = document.getElementById("redirect");
+            link.innerText = redirect;
+            link.href = redirect;
+        }
+    </script>
+</body>
