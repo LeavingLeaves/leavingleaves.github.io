@@ -73,7 +73,7 @@
             let input = document.getElementById("sortString").value;
             input = input.split('').sort((a, b) => a.charCodeAt() - b.charCodeAt()).join('');
             let stat = input.match(/(.)\1*/g).map(s => [s[0], s.length])
-                .sort((a, b) => -a.length + b.length);
+                .sort((a, b) => -a[1] + b[1]);
             stat = Object.fromEntries(stat);
             document.getElementById("sortStrResult").innerText =
                 input.split('').sort((a, b) => a - b).join('') + "\n\n" +
