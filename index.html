@@ -6,8 +6,9 @@
     <title>叶的随机小工具</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: monospace;
             margin: 20px;
+            font-size: large;
         }
 
         #result {
@@ -18,8 +19,8 @@
 
 <body>
     <h2><a href="https://leavingleaves.github.io/Puzzle_Calculator.htm">不暴力不成活</a></h2>
-
     <h2><a href="https://leavingleaves.github.io/Nutrimatic_Query.html">Nutrimatic Query生成</a></h2>
+    <h2><a href="https://leavingleaves.github.io/kuaidula/">快读啦</a></h2>
 
     <h2>质因数分解</h2>
     <input type="text" id="factNum" placeholder="输入一个数字" onkeydown="factNumEnter(event)">
@@ -57,7 +58,7 @@
         }
     </script>
 
-    <h2>字符排序</h2>
+    <h2>字符排序统计</h2>
     <input type="text" id="sortString" placeholder="输入任意字符串" onkeydown="sortStrEnter(event)">
     <button onclick="sortStr()">排序</button>
     <div id="sortStrResult"></div>
@@ -71,7 +72,12 @@
         function sortStr() {
             let input = document.getElementById("sortString").value;
             input = input.split('').sort((a, b) => a.charCodeAt() - b.charCodeAt()).join('');
-            document.getElementById("sortStrResult").innerText = input.split('').sort((a, b) => a - b).join('');
+            let stat = input.match(/(.)\1*/g).map(s => [s[0], s.length])
+                .sort((a, b) => -a.length + b.length);
+            stat = Object.fromEntries(stat);
+            document.getElementById("sortStrResult").innerText =
+                input.split('').sort((a, b) => a - b).join('') + "\n\n" +
+                "统计结果:\n" + JSON.stringify(stat, null, '\t');
         }
     </script>
 
