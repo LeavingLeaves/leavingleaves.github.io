@@ -8,6 +8,7 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            word-wrap: break-word;
         }
 
         #result {
@@ -17,31 +18,44 @@
 </head>
 
 <body>
-    <h2><a href="https://nutrimatic.org/" target="_blank">打开Nutrimatic</a></h2>
+    <div style="display: flex; flex-grow:0; flex-shrink: 0;">
+        <div style="min-width: 300px; max-width: 300px;">
+            <h3><a href="https://nutrimatic.org/" target="_blank">打开Nutrimatic</a></h3>
 
-    <div>匹配串：　<input type="text" id="pattern" placeholder="例如L..F，l__f，L??f"></div>
-    <div>结果长度：<input type="text" id="length" placeholder="例如4，2~4，4 2"></div>
-    <div>子串：　　<input type="text" id="substr" placeholder="使用空格或逗号隔开"></div>
-    <div>连续子串：<input type="text" id="lsubstr" placeholder="使用空格或逗号隔开"></div>
-    <div>母串：　　<input type="text" id="superstr" placeholder="使用空格或逗号隔开"></div>
-    <div>不含字母：<input type="text" id="nletter" placeholder=""></div>
-    <div>后缀开头：<input type="text" id="suffix" placeholder="使用空格或逗号隔开"></div>
-    <div>前缀结尾：<input type="text" id="prefix" placeholder="使用空格或逗号隔开"></div>
-    <div>改单字母：<input type="text" id="change1" placeholder="使用空格或逗号隔开"></div>
-    <div>含双字母：<input type="checkbox" id="double"></div>
+            <div>匹配串：　<input type="text" onkeydown="genEnter(event)" id="pattern" placeholder="例如L..F，l__f，L??f"></div>
+            <div>结果长度：<input type="text" onkeydown="genEnter(event)" id="length" placeholder="例如4，2~4，4 2"></div>
+            <div>子串：　　<input type="text" onkeydown="genEnter(event)" id="substr" placeholder="使用空格或逗号隔开"></div>
+            <div>连续子串：<input type="text" onkeydown="genEnter(event)" id="lsubstr" placeholder="使用空格或逗号隔开"></div>
+            <div>母串：　　<input type="text" onkeydown="genEnter(event)" id="superstr" placeholder="使用空格或逗号隔开"></div>
+            <div>不含字母：<input type="text" onkeydown="genEnter(event)" id="nletter" placeholder=""></div>
+            <div>后缀开头：<input type="text" onkeydown="genEnter(event)" id="suffix" placeholder="使用空格或逗号隔开"></div>
+            <div>前缀结尾：<input type="text" onkeydown="genEnter(event)" id="prefix" placeholder="使用空格或逗号隔开"></div>
+            <div>改<input type="text" onkeydown="genEnter(event)" id="changea" value="1" style="width:2ch">
+                字母：<input type="text" onkeydown="genEnter(event)" id="changen" placeholder="使用空格或逗号隔开"></div>
+            <div>含双字母：<input type="checkbox" id="double"></div>
 
-    <br><button onclick="generate()">生成</button>
+            <br><button onclick="generate()">生成</button>
 
-    <div id="result"></div>
-    <br>
-    <a id="redirect" href="https://nutrimatic.org/?q=" target="_blank">https://nutrimatic.org/?q=</a>
+            <div id="result"></div>
+            <br>
+            <a id="redirect" href="https://nutrimatic.org/?q=" target="_blank">https://nutrimatic.org/?q=</a>
+        </div>
+        <iframe id="nutrimatic" src="https://nutrimatic.org/" style="width: 100%; height: 90vh; border: none;"></iframe>
+        <!-- <iframe id="util.in" src="https://util.in/solver" style="width: 100%; height: 90vh; border: none;"></iframe> -->
+    </div>
     <script>
+        function genEnter(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                generate();
+            }
+        }
         function generate() {
             let l = [];
             if (document.getElementById("pattern").value.length !== 0) {
                 let str = document.getElementById("pattern").value;
                 str = str.toLowerCase();
-                str = str.replaceAll(/[_.?]/g, "A");
+                str = str.replaceAll(/[ _.?]/g, "A");
                 l.push(str);
             }
             if (document.getElementById("length").value.length !== 0) {
@@ -106,14 +120,23 @@
                     l.push("A*" + f(s));
                 });
             }
-            if (document.getElementById("change1").value.length !== 0) {
-                let str = document.getElementById("change1").value;
+            if (document.getElementById("changen").value.length !== 0) {
+                let str = document.getElementById("changen").value;
+                let a = parseInt(document.getElementById("changea").value);
+                if (isNaN(a)) a = 0;
                 str.split(/[ ,，]/).forEach(s => {
                     s = s.toLowerCase();
                     let res = [];
-                    for (let i = 0; i < s.length; i++) {
-                        res.push(s.slice(0, i) + "A" + s.slice(i + 1));
+                    let f = function (s, l, x = -1) {
+                        if (l === 0) {
+                            res.push(s);
+                            return;
+                        }
+                        for (let i = x + 1; i < s.length; i++) {
+                            f(s.slice(0, i) + "A" + s.slice(i + 1), l - 1, i);
+                        }
                     }
+                    f(s, (a % s.length + s.length) % s.length);
                     l.push("(" + res.join("|") + ")");
                 });
             }
@@ -125,9 +148,12 @@
 
             document.getElementById("result").innerText = result;
             let redirect = "https://nutrimatic.org/?q=" + encodeURIComponent(result);
+            let redirect2 = "https://util.in/solver?q=" + encodeURIComponent(result.replaceAll("A", "."));
             let link = document.getElementById("redirect");
             link.innerText = redirect;
             link.href = redirect;
+            document.getElementById("nutrimatic").src = redirect;
+            // document.getElementById("util.in").src = redirect2;
         }
     </script>
 </body>
