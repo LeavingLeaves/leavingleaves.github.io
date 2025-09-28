@@ -149,11 +149,17 @@
         <select class="type-selection" id="font-select">
             <option value="宋体">宋体</option>
             <option value="楷体">楷体</option>
+            <option value="黑体">黑体</option>
+            <!-- <option value="微软雅黑">微软雅黑</option> -->
+            <option value="仿宋">仿宋</option>
+
         </select>
         <select class="type-selection" id="type-select">
             <option value="windows">纱窗</option>
-            <option value="stretched">拉伸</option>
+            <option value="stretched">均一</option>
             <option value="sand">落沙</option>
+            <option value="star">放射</option>
+            <option value="overlay">反叠</option>
         </select>
     </div>
     <div class="image-title">变换前后效果</div>
@@ -181,7 +187,7 @@
             // 初始化时显示示例汉字
             window.onload = function () {
                 chineseInput.value = '落葉子';
-                fontSize.value = 150;
+                fontSize.value = 200;
                 generateCharacter();
             };
 
@@ -211,6 +217,12 @@
                     case "sand":
                         func = drawSandCha;
                         break;
+                    case "star":
+                        func = drawStarCha;
+                        break;
+                    case "overlay":
+                        func = drawOverlayCha;
+                        break;
                 }
                 if (func === undefined) return;
                 for (let ch of inputText) {
@@ -231,7 +243,7 @@
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 // 设置字体样式
                 // ctx.font = 'bold 150px "楷体", "STKaiti", "KaiTi"';
-                ctx.font = width + 'px "' + fontSelect.value + '"';
+                ctx.font = fontSize.value + 'px "' + fontSelect.value + '"';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#000000';
@@ -374,6 +386,63 @@
                     for (let y = 0; y < width; y++) {
                         const index = (y * width + x) * 4;
                         newData[index + 3] = (y + cnt >= height) ? 0xff : 0;
+                    }
+                }
+                newCtx.putImageData(newImageData, 0, 0);
+                return newCanvas;
+            }
+
+            // 放射
+            function drawStarCha(canvas) {
+                const width = canvas.width, height = canvas.height;
+                // 获取像素数据
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+
+                // 创建一个新的ImageData用于存储处理后的图像
+                const newCanvas = document.createElement('canvas');
+                newCanvas.width = width;
+                newCanvas.height = height;
+                const newCtx = newCanvas.getContext('2d', { willReadFrequently: true });
+                newCtx.putImageData(imageData, 0, 0);
+
+                for (let x = 0; x < height; x++) {
+                    for (let y = 0; y < width; y++) {
+                        const index = (y * width + x) * 4;
+                        if (data[index + 3] === 0) continue;
+                        newCtx.beginPath();
+                        newCtx.moveTo(x, y);
+                        newCtx.lineTo(width / 2, height / 2);
+                        newCtx.stroke();
+                    }
+                }
+                // newCtx.putImageData(newImageData, 0, 0);
+                return newCanvas;
+            }
+
+            // 反叠
+            function drawOverlayCha(canvas) {
+                const width = canvas.width, height = canvas.height;
+                // 获取像素数据
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+
+                // 创建一个新的ImageData用于存储处理后的图像
+                const newCanvas = document.createElement('canvas');
+                newCanvas.width = width;
+                newCanvas.height = height;
+                const newCtx = newCanvas.getContext('2d', { willReadFrequently: true });
+                const newImageData = ctx.getImageData(0, 0, width, height);
+                const newData = newImageData.data;
+
+                for (let x = 0; x < height; x++) {
+                    for (let y = 0; y < width; y++) {
+                        const index = (y * width + x) * 4;
+                        newData[index + 3] = 0;
+                        if (data[index + 3] === 0 || data[((height - 1 - y) * width + width - 1 - x) * 4 + 3] === 0) continue;
+                        newData[index + 3] = 0xff;
                     }
                 }
                 newCtx.putImageData(newImageData, 0, 0);
