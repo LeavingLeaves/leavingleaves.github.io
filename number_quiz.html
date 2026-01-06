@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字谜</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 标题样式 */
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            color: #2c3e50;
+            letter-spacing: 5px;
+            text-shadow: 2px 2px 0 #bdc3c7;
+        }
+
+        /* 输入区域样式 */
+        .input-section {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .input-instruction {
+            font-size: 1rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        #answer-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            transition: border-color 0.3s;
+        }
+
+        #answer-input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        #submit-btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #submit-btn:hover {
+            background-color: #34495e;
+        }
+
+        /* 题目卡片样式 */
+        .puzzle-section h2 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #bdc3c7;
+        }
+
+        #puzzle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .puzzle-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .puzzle-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .puzzle-card.solved {
+            border-left-color: #27ae60;
+            background-color: #f9fdf9;
+        }
+
+        .puzzle-card.active {
+            border-left-color: #e74c3c;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(231, 76, 60, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+
+        .puzzle-title {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .puzzle-status {
+            font-size: 0.85rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+        }
+
+        .puzzle-status.solved {
+            background-color: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .puzzle-content {
+            font-size: 1.1rem;
+            color: #34495e;
+            line-height: 1.7;
+        }
+
+        /* 制作者信息 */
+        .creator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            padding: 8px 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            #answer-input,
+            #submit-btn {
+                width: 100%;
+            }
+        }
+
+        /* 消息提示 */
+        .message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d5f4e6;
+            color: #27ae60;
+            border: 1px solid #27ae60;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #fdeaea;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 标题区域 -->
+        <header class="header">
+            <h1>数字谜</h1>
+        </header>
+
+        <!-- 输入区域 -->
+        <section class="input-section">
+            <div class="input-instruction">请回答三个不超过30的阿拉伯数字，用逗号连接</div>
+            <div class="input-group">
+                <input type="text" id="answer-input" placeholder="例如：12,5,14">
+                <button id="submit-btn">提交答案</button>
+            </div>
+            <div id="message" class="message"></div>
+        </section>
+
+        <!-- 题目列表区域 -->
+        <section class="puzzle-section">
+            <h2>谜题列表</h2>
+            <div id="puzzle-list">
+                <!-- 题目卡片会动态生成在这里 -->
+            </div>
+        </section>
+    </div>
+
+    <!-- 制作者信息 -->
+    <div class="creator">制作者：落葉子</div>
+
+    <script>
+        // 题目数据 - 每个谜题包含标题、问题和答案
+        const puzzles = [
+            {
+                title: "第一组·常识",
+                questions: ["昆虫有几条腿", "彩虹有几种颜色", "正方体展开图一共有几种"]
+            },
+            {
+                title: "第二组·例外",
+                questions: ["三加四得几但看错成了乘法", "台球中有几个球但是忘记算上母球", "人有几根手指但有多指症"]
+            },
+            // {
+            //     title: "第三组·填数",
+            //     questions: ["几胡", "奋几世之余烈", "十几行诗"]
+            // },
+            // {
+            //     title: "第四组·混杂",
+            //     questions: ["茶几条腿", "第一宇宙速度几乎", "正多几何体"]
+            // },
+            // {
+            //     title: "第五组·双关",
+            //     questions: ["公转一周要几天", "一块三角铁一折之下会成几分", "他一打喷嚏连着几个止不住"]
+            // },
+            // {
+            //     title: "第六组·反常",
+            //     questions: ["十月革命是几月发生的", "八大山人是几个人", "二加二得几"]
+            // },
+            // {
+            //     title: "第七组·揭晓",
+            //     questions: ["红豆生南国春来发几枝愿君多采撷此物最相思", "赤道几内亚共和国", "几"]
+            // },
+            // {
+            //     title: "第八组·尾声",
+            //     questions: ["几字谜", "这句话有几个字", "满分十分给这套题打几分"]
+            // }
+        ];
+
+        // 游戏状态
+        let currentPuzzleIndex = 0;
+        let solvedPuzzles = [];
+
+        // DOM元素
+        const puzzleList = document.getElementById('puzzle-list');
+        const answerInput = document.getElementById('answer-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const messageDiv = document.getElementById('message');
+
+        // 初始化游戏
+        function initGame() {
+            // 清空题目列表
+            puzzleList.innerHTML = '';
+
+            // 显示已解决的题目和当前题目
+            for (let i = 0; i <= currentPuzzleIndex; i++) {
+                createPuzzleCard(i);
+            }
+
+            // 设置输入框焦点
+            answerInput.focus();
+        }
+
+        // 创建题目卡片
+        function createPuzzleCard(index) {
+            if (index >= puzzles.length) { return; }
+            const puzzle = puzzles[index];
+            const isSolved = solvedPuzzles.includes(index);
+            const isActive = (index === currentPuzzleIndex);
+
+            const card = document.createElement('div');
+            card.className = `puzzle-card ${isSolved ? 'solved' : ''} ${isActive ? 'active' : ''}`;
+
+            const statusText = isSolved ? '已解决' : (isActive ? '当前谜题' : '未解锁');
+
+            card.innerHTML = `
+                <div class="puzzle-title">
+                    <span>${puzzle.title}</span>
+                    <span class="puzzle-status ${isSolved ? 'solved' : ''}">${statusText}</span>
+                </div>
+                <div class="puzzle-content">${puzzle.questions.join('；')}</div>
+                ${puzzle.hint ? `<div class="puzzle-hint" style="margin-top:10px; color:#e67e22; font-size:0.95rem;">提示：${puzzle.hint}</div>` : ''}
+            `;
+
+            puzzleList.appendChild(card);
+            return card;
+        }
+
+        // 显示消息
+        function showMessage(text, type) {
+            let finished = (type === "finish");
+            if (finished) { type = "success"; }
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            if (!finished) {
+                // 3秒后自动隐藏消息
+                setTimeout(() => {
+                    messageDiv.className = 'message';
+                }, 3000);
+            }
+        }
+
+        // 验证答案
+        function validateAnswer(answer) {
+            // 验证格式：三个用逗号连接的数字
+            answer = answer.replaceAll("，", ",");
+            const pattern = /^\s*\d+\s*[,]\s*\d+\s*[,]\s*\d+\s*$/;
+            if (!pattern.test(answer)) {
+                showMessage('答案格式不正确！请使用逗号分隔三个数字，例如：12,5,23', 'error');
+                return false;
+            }
+
+            // 提取数字
+            const numbers = answer.split(',').map(num => parseInt(num.trim(), 10));
+
+            // 验证数字不超过30
+            for (let num of numbers) {
+                if (num > 30) {
+                    showMessage('每个数字不能超过30！', 'error');
+                    return false;
+                }
+            }
+
+            return numbers;
+        }
+
+        // 检查答案是否正确
+        function checkAnswer() {
+            const userAnswer = answerInput.value.trim();
+            const validatedNumbers = validateAnswer(userAnswer);
+
+            if (!validatedNumbers) return;
+
+            const currentPuzzle = puzzles[currentPuzzleIndex];
+            const correctAnswer = currentPuzzle.questions.map(e => e.length).join(',');
+
+            // 将用户答案转换为标准格式进行比较
+            const userAnswerFormatted = validatedNumbers.join(',');
+
+            if (userAnswerFormatted === correctAnswer) {
+                // 答案正确
+                solvedPuzzles.push(currentPuzzleIndex);
+
+                // 清除输入框
+                answerInput.value = '';
+                currentPuzzleIndex++;
+
+                // 如果还有更多谜题，解锁下一个
+                if (currentPuzzleIndex < puzzles.length) {
+                    showMessage('恭喜！答案正确！', 'success');
+                    // 添加新的题目卡片
+                    createPuzzleCard(currentPuzzleIndex);
+                } else {
+                    showMessage('太棒了！你已经解决了所有谜题！', 'finish');
+                    submitBtn.disabled = true;
+                    answerInput.disabled = true;
+                }
+
+                // 重新渲染所有卡片以更新状态
+                initGame();
+            } else {
+                showMessage('答案不正确，请再试一次！', 'error');
+                // 清空输入框并聚焦
+                // answerInput.value = '';
+                answerInput.focus();
+            }
+        }
+
+        // 事件监听
+        submitBtn.addEventListener('click', checkAnswer);
+
+        answerInput.addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // 页面加载时初始化游戏
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+
+</html>
